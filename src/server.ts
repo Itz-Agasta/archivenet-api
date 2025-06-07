@@ -2,7 +2,10 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import helmet from "helmet";
-import { errorHandler } from "./middlewares/errorHandler.js";
+import { errorHandler } from "./middlewares/errorHandler";
+import { auth } from "./middlewares/auth.js";
+import { webhook } from "./routes/webhook";
+import { apiKeyRouter } from "./routes/apiKeyRouter";
 
 dotenv.config();
 
@@ -30,7 +33,7 @@ const corsOptions: cors.CorsOptions = {
 
 // Middleware Setup
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+//app.use(express.urlencoded({ extended: true }));
 app.use(cors(corsOptions));
 app.use(helmet());
 
@@ -40,6 +43,17 @@ app.get("/", (req, res) => {
 
 app.get("/health", (_req, res) => {
 	res.send("API is up and running!");
+});
+
+app.use('/webhook', webhook);
+app.use("/apiKey", apiKeyRouter);
+
+app.get("/test", auth, (req, res) => {
+	console.log("User ID:", req.userId);
+	res.json({
+		message: "This is a test route",
+		userId: req.userId,
+	});
 });
 
 app.use(errorHandler);
